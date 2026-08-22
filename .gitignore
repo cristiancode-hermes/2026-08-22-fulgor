@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.angular/
+.env
+*.db
+*.db-wal
+*.db-shm
+_web_node_modules
+*.log
+.DS_Store
