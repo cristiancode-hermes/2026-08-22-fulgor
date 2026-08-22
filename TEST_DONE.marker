@@ -1,0 +1,7 @@
+QA testing complete for 2026-08-22
+Project: fulgor
+Build: ✅ API tsc + web dist (baseHref /)
+Tests: 21/21 passing
+New tests: 3 added (holdConflict ALREADY_HELD first)
+Issues: 0 critical (4 bugs fixed in QA: CheckIn TDZ, check-in 500, featured freeSlots, 409 order)
+Published: ✅ Caddy (fulgor.proyectos.cristiancode.dev), ✅ Portfolio (es.ts+en.ts+pt.ts), ✅ GitHub, ✅ Landing, ✅ Excel
