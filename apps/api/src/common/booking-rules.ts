@@ -46,6 +46,26 @@ export function hasDuplicateUserSlot(
   });
 }
 
+/** Same-user 409 must win over SLOT_TAKEN (Vitrina 2026-08-19). */
+export function holdConflict(
+  existing: { userId: number; slotId: number; status: BookingStatus; expiresAt?: Date | string | null }[],
+  userId: number,
+  slotId: number,
+  now = new Date(),
+): 'ALREADY_HELD' | 'SLOT_TAKEN' | null {
+  if (hasDuplicateUserSlot(existing, userId, slotId, now)) return 'ALREADY_HELD';
+  const taken = existing.some((b) => {
+    if (b.slotId !== slotId) return false;
+    if (b.status === 'confirmed' || b.status === 'checked_in' || b.status === 'in_play') return true;
+    if (b.status === 'pending') {
+      if (!b.expiresAt) return true;
+      return new Date(b.expiresAt).getTime() > now.getTime();
+    }
+    return false;
+  });
+  return taken ? 'SLOT_TAKEN' : null;
+}
+
 export function pointsForCompleted(partySize: number): number {
   return partySize * POINTS_PER_PLAYER;
 }

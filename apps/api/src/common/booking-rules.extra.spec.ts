@@ -1,6 +1,7 @@
 import {
   canTransition,
   hasDuplicateUserSlot,
+  holdConflict,
   isLivePending,
   pointsForCompleted,
   slotIsBusy,
@@ -57,5 +58,34 @@ describe('booking-rules extra', () => {
         { status: 'pending', expiresAt: new Date(Date.now() - 1000) },
       ]),
     ).toBe('free');
+  });
+});
+
+describe('holdConflict order', () => {
+  const now = new Date('2026-08-22T12:00:00Z');
+  it('same-user pending wins over SLOT_TAKEN', () => {
+    expect(
+      holdConflict(
+        [{ userId: 1, slotId: 9, status: 'pending', expiresAt: new Date('2026-08-22T12:10:00Z') }],
+        1,
+        9,
+        now,
+      ),
+    ).toBe('ALREADY_HELD');
+  });
+
+  it('other user live is SLOT_TAKEN', () => {
+    expect(
+      holdConflict(
+        [{ userId: 2, slotId: 9, status: 'confirmed', expiresAt: null }],
+        1,
+        9,
+        now,
+      ),
+    ).toBe('SLOT_TAKEN');
+  });
+
+  it('empty is free', () => {
+    expect(holdConflict([], 1, 9, now)).toBeNull();
   });
 });

@@ -209,8 +209,9 @@ export class Booking {
   @OneToMany(() => QueueEntry, (q: QueueEntry) => q.booking)
   queue?: QueueEntry[];
 
-  @OneToOne(() => CheckIn, (c: CheckIn) => c.booking)
-  checkIn?: CheckIn | null;
+  // typed as any: emitDecoratorMetadata would TDZ CheckIn (declared below)
+  @OneToOne(() => CheckIn, (c) => c.booking)
+  checkIn?: any;
 }
 
 @Entity('booking_lines')
@@ -327,9 +328,9 @@ export class CheckIn {
   @Column({ type: 'int', unique: true })
   bookingId: number;
 
-  @OneToOne(() => Booking, (b: Booking) => b.checkIn)
+  @OneToOne(() => Booking, (b) => b.checkIn)
   @JoinColumn({ name: 'bookingId' })
-  booking?: Booking;
+  booking?: any;
 
   @Column({ type: 'int' })
   staffUserId: number;

@@ -35,6 +35,7 @@ import {
   canCancelByPolicy,
   canReorderQueue,
   canTransition,
+  holdConflict,
   parseMadridLocal,
   sumLines,
   validatePartySize,
@@ -123,11 +124,9 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
       }
 
       const existingOnSlot = await this.bookings.find({ where: { slotId: slot.id } });
-      const live = existingOnSlot.filter((b) => this.isLive(b));
-      if (live.length > 0) throw conflict('SLOT_TAKEN', 'Esta arena ya está cogida');
-
-      const dup = existingOnSlot.find((b) => b.userId === userId && this.isLive(b));
-      if (dup) throw conflict('ALREADY_HELD', 'Ya tienes esta franja.');
+      const clash = holdConflict(existingOnSlot, userId, slot.id);
+      if (clash === 'ALREADY_HELD') throw conflict('ALREADY_HELD', 'Ya tienes esta franja.');
+      if (clash === 'SLOT_TAKEN') throw conflict('SLOT_TAKEN', 'Esta arena ya está cogida');
 
       const extraHour = !!dto.extraHour;
       const addonIds = dto.addonIds?.length ? dto.addonIds : dto.menuItemIds;
@@ -472,9 +471,8 @@ export class BookingsService implements OnModuleInit, OnModuleDestroy {
         code: normalized,
         scannedAt: new Date(),
       } as any)) as CheckIn;
-      b.status = 'in_play';
-      b.updatedAt = new Date();
-      await this.bookings.save(b);
+      // update() not save(entity): OneToOne inverse would NULL check_ins.bookingId
+      await this.bookings.update(b.id, { status: 'in_play', updatedAt: new Date() });
       const first = await this.queue.findOne({
         where: { bookingId: b.id, status: 'queued' },
         order: { position: 'ASC' },

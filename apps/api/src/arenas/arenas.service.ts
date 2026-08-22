@@ -56,20 +56,9 @@ export class ArenasService {
   }
 
   async featured(date?: string) {
-    const items = await this.arenas.find({
-      where: { active: true },
-      order: { sortOrder: 'ASC' },
-      take: 4,
-    });
-    const today = date || madridDate();
-    const out = [];
-    let freeSlotsToday = 0;
-    for (const arena of items) {
-      const row = await this.withAvailability(arena, today);
-      freeSlotsToday += row.freeSlotsToday;
-      out.push(row);
-    }
-    return { items: out, freeSlotsToday };
+    // Same freeSlotsToday as /arenas (home KPI must match catalogue).
+    const all = await this.findAll({ date });
+    return { items: all.items.slice(0, 4), freeSlotsToday: all.freeSlotsToday };
   }
 
   async findOne(id: number) {
